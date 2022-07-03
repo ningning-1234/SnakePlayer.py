@@ -2,8 +2,8 @@ import pygame
 from random import randint
 from Animation import *
 
-SNAKE_COLOR = (81,128,243)
-SNAKE_COLOR2 = (81,128,243)
+SNAKE_COLOR1 = (81,128,243)
+SNAKE_COLOR2 = (81,64,243)
 
 tongue_file = 'images/tongue extend0.png'
 tongue_img_default = pygame.image.load(tongue_file)
@@ -29,6 +29,12 @@ eye_blink_imgs.append(pygame.image.load('images/eye blink2.png'))
 eye_blink_imgs.append(pygame.image.load('images/eye blink3.png'))
 eye_blink_imgs.append(pygame.image.load('images/eye blink2.png'))
 eye_blink_imgs.append(pygame.image.load('images/eye blink1.png'))
+
+color_toggle = True
+
+pygame.init()
+pygame.font.init()
+
 
 class Snake(list):
     def __init__(self,rect, speed, tile_size):
@@ -69,8 +75,8 @@ class Snake(list):
             head=self[0]
             next_x = head.grid_x
             next_y = head.grid_y
-            print("head pos before : ", head[0], head[1])
-            print("head pos before : ", next_x, next_y)
+            #print("head pos before : ", head[0], head[1])
+            #print("head pos before : ", next_x, next_y)
             if(self.tile_aligned()==True):
                 if(head.next_dir==0):
                     next_x= next_x+1
@@ -83,8 +89,8 @@ class Snake(list):
 
             for s in self[1:]:
                 if(s.grid_x==next_x and s.grid_y==next_y):
-                    print("head pos after: ", next_x, next_y)
-                    print("body pos: ", s.grid_x, s.grid_y)
+                    #print("head pos after: ", next_x, next_y)
+                    #print("body pos: ", s.grid_x, s.grid_y)
                     return True
             return False
 
@@ -121,16 +127,20 @@ class SnakePart(pygame.Rect):
         self.tile_size = tile_size
         self.grid_x = self[0]//self.tile_size
         self.grid_y = self[1]//self.tile_size
-
         self.prev_part = prev_part
         self.head = head
         self.move_dir = move_dir
         self.next_dir = move_dir
         self.changed_dir = False
-        self.color=SNAKE_COLOR
-
+        self.color = SNAKE_COLOR1
+        global color_toggle
+        if (color_toggle == True):
+            self.color = SNAKE_COLOR1
+            color_toggle = False
+        else:
+            self.color = SNAKE_COLOR2
+            color_toggle = True
         self.speed=speed
-
         self.eye_animation = RotateAnimation([-5, -10, -5, 0, 5, 10, 5, 0], 20)
 
     def tile_aligned(self):
@@ -190,28 +200,78 @@ class SnakeHead(SnakePart):
     def update(self, *args, **kwargs):
         # print(self.tile_aligned())
         # print(self.move_dir)
-        self.parse_inputs(kwargs['inputs'])
+        self.parse_inputs(kwargs['inputs'], kwargs['controller_inputs'])
         self.move()
         self.grid_x = self[0] // self.tile_size
         self.grid_y = self[1] // self.tile_size
 
 
-    def parse_inputs(self, keys):
+    def parse_inputs(self, keys, controller=None):
+        commands = []
         #right
-        if (keys[pygame.K_d]):
+        if (keys[pygame.K_d] or keys[pygame.K_RIGHT]):
+            commands.append('right')
+        #down
+        if (keys[pygame.K_s] or keys[pygame.K_DOWN]):
+            commands.append('down')
+        #left
+        if (keys[pygame.K_a] or keys[pygame.K_LEFT]):
+            commands.append('left')
+        #up
+        if (keys[pygame.K_w] or keys[pygame.K_UP]):
+            commands.append('up')
+
+        controller_mapping = {
+            'right': 14,
+            'down':12,
+            'left':13,
+            'up':11
+        }
+
+        if(controller is not None):
+            # right
+            if (controller.get_button(controller_mapping['right']) or controller.get_axis(0) * 128 > 96):
+                commands.append('right')
+            # down
+            if (controller.get_button(controller_mapping['down']) or controller.get_axis(1) * 128 > 96):
+                commands.append('down')
+            # left
+            if (controller.get_button(controller_mapping['left']) or controller.get_axis(0) * 128 < -96):
+                commands.append('left')
+            # up
+            if (controller.get_button(controller_mapping['up']) or controller.get_axis(1) * 128 < -96):
+                commands.append('up')
+            # # right
+            # if (controller.get_button(14) or controller.get_axis(0) * 128 > 92):
+            #     commands.append('right')
+            # # down
+            # if (controller.get_button(12) or controller.get_axis(1) * 128 > 92):
+            #     commands.append('down')
+            # # left
+            # if (controller.get_button(13) or controller.get_axis(0) * 128 < -92):
+            #     commands.append('left')
+            # # up
+            # if (controller.get_button(11) or controller.get_axis(1) * 128 < -92):
+            #     commands.append('up')
+
+        commands = list(set(commands))
+        self.parse_commands(commands)
+
+    def parse_commands(self, commands):
+        #right
+        if ('right' in commands):
             if (self.move_dir == 1 or self.move_dir == 3):
                 self.next_dir = 0
-
         #down
-        if (keys[pygame.K_s]):
+        if ('down' in commands):
             if (self.move_dir == 0 or self.move_dir == 2):
                 self.next_dir = 1
         #left
-        if (keys[pygame.K_a]):
-            if(self.move_dir==1 or self.move_dir==3):
-                self.next_dir=2
+        if ('left' in commands):
+            if(self.move_dir == 1 or self.move_dir == 3):
+                self.next_dir = 2
         #up
-        if (keys[pygame.K_w]):
+        if ('up' in commands):
             if (self.move_dir == 0 or self.move_dir == 2):
                 self.next_dir = 3
 

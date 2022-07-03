@@ -28,20 +28,6 @@ class Fruit(pygame.Rect):
         self.idle_timer1 = randint(120, 240)
         self.idle_timer2 = randint(120, 240)
 
-        # self.idle_animation_type = 3
-        # if(self.idle_animation_type == 0):
-        #     self.animation = MoveAnimation(idle_movement1_2, 20, 'y', loop=False)
-        # if (self.idle_animation_type == 1):
-        #     self.animation = MoveAnimation(idle_movement1_2, 20, 'x', loop=False)
-        # if (self.idle_animation_type == 2):
-        #     self.animation = MoveAnimation(idle_movement3, 10, loop=False)
-        # if (self.idle_animation_type == 3):
-        #     self.animation = RotateAnimation(idle_movement4, 10, center=self.center, loop=False)
-        # if (self.idle_animation_type == 4):
-        #     self.animation = RotateAnimation(idle_movement5, 10, center=self.center, loop=False)
-        #self.animation = MoveAnimation(self.idle_movement3, 20)
-        #self.idle_movement3_y = [-3, -3, -3, 0, 3, 3, 3, 0]
-
     def player_collide(self, player, game):
         if (self.hit_player == False):
             self.hit_player = True
@@ -60,20 +46,17 @@ class Fruit(pygame.Rect):
                     self.idle_timer1 = randint(120, 240)
             else:
                 idle_animation_type = randint(0, 4)
+                self.animation_loop = randint(1,5)
                 if (idle_animation_type == 0):
-                    self.animation = MoveAnimation(idle_movement1_2, 20, 'y', loop=3)
+                    self.animation = MoveAnimation(idle_movement1_2, 20, 'y', loop=self.animation_loop)
                 if (idle_animation_type == 1):
-                    self.animation = MoveAnimation(idle_movement1_2, 20, 'x', loop=3)
+                    self.animation = MoveAnimation(idle_movement1_2, 20, 'x', loop=self.animation_loop)
                 if (idle_animation_type == 2):
                     self.animation = MoveAnimation(idle_movement3, 10, loop=3)
                 if (idle_animation_type == 3):
-                    self.animation = RotateAnimation(idle_movement4, 10, center=self.center, loop=3)
+                    self.animation = RotateAnimation(idle_movement4, 10, center=self.center, loop=self.animation_loop)
                 if (idle_animation_type == 4):
-                    self.animation = RotateAnimation(idle_movement5, 10, center=self.center, loop=1)
+                    self.animation = RotateAnimation(idle_movement5, 10, center=self.center, loop=self.animation_loop)
                 self.animation.complete = False
                 self.idle_timer1 = self.idle_timer1 - 1
                 window.blit(fruit_img, self)
-
-    #todo
-    # have the idle animation play at random intervals
-    # have the animations be random
